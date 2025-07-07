@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-using System.Windows.Forms;
 using Microsoft.VisualBasic.FileIO;
 
 namespace FileJanitor;
@@ -41,6 +38,10 @@ public partial class Form1 : Form
 
     }
 
+    /// <summary>
+    /// A method to validate the current selected folder path allowing the functionalty to be defined in one place and avioding repeated use of try-catch
+    /// in all methods that require this check.
+    /// </summary>
     private bool Validate_Path()
     {
         if (string.IsNullOrWhiteSpace(folderTextBox.Text))
@@ -59,6 +60,9 @@ public partial class Form1 : Form
         }
     }
 
+    /// <summary>
+    /// Queries a specified folder for all files of a specified extension
+    /// </summary>
     private void Query_Files()
     {
 
@@ -77,14 +81,20 @@ public partial class Form1 : Form
         }
     }
 
-    private void Refresh_Click(object sender, EventArgs e)
+    /// <summary>
+    /// Refreshes the file list by re-querying the specified folder if the extension is changed. Should eventually be replaced with an automated solution.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void Refresh_Click(object? sender, EventArgs e)
     {
-        if (Validate_Path()){
-            Query_Files();             
+        if (Validate_Path())
+        {
+            Query_Files();
         }
     }
 
-    private void Browse_Click(object sender, EventArgs e)
+    private void Browse_Click(object? sender, EventArgs e)
     {
         using (FolderBrowserDialog dialog = new FolderBrowserDialog())
         {
@@ -96,12 +106,16 @@ public partial class Form1 : Form
         }
     }
 
-    private void Delete_Click(object sender, EventArgs e)
+    /// <summary>
+    /// Deletes all files of specified extension in the specified folder. Can be configured to send to recycle bin or permanently delete based on permaDelete.Checked status.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void Delete_Click(object? sender, EventArgs e)
     {
         string folder = folderTextBox.Text;
         string ext = extensionTextBox.Text.TrimStart('.');
         bool perma = permaDelete.Checked;
-
 
         if (Validate_Path())
         {
