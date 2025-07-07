@@ -19,7 +19,7 @@ public partial class Form1 : Form
         folderTextBox = new TextBox { Left = 10, Top = 10, Width = 300 };
         browseButton = new Button { Text = "Browse", Left = 320, Top = 10 };
         refreshButton = new Button { Text = "Refresh", Left = 120, Top = 50 };
-        extensionTextBox = new TextBox { Left = 10, Top = 50, Width = 100, PlaceholderText = ".txt" };
+        extensionTextBox = new TextBox { Left = 10, Top = 50, Width = 100, PlaceholderText = "File Extension" };
         deleteButton = new Button { Text = "Delete Files", Left = 10, Top = 90 };
         permaDelete = new CheckBox { Left = 100, Top = 90, Width = 200, Checked = false, Text = "Delete Permanently" };
         fileList = new ListBox { Left = 420, Top = 10, Width = 300, Height = 150 };
@@ -68,7 +68,8 @@ public partial class Form1 : Form
 
         string folder = folderTextBox.Text;
         string ext = extensionTextBox.Text.TrimStart('.');
-        string[] files = Directory.GetFiles(folder, "*." + ext);
+        string searchPattern = string.IsNullOrWhiteSpace(ext) ? "*" : $"*.{ext.TrimStart('.')}";
+        string[] files = Directory.GetFiles(folder, searchPattern);
 
         fileList.Items.Clear();
 
@@ -115,11 +116,12 @@ public partial class Form1 : Form
     {
         string folder = folderTextBox.Text;
         string ext = extensionTextBox.Text.TrimStart('.');
+        string searchPattern = string.IsNullOrWhiteSpace(ext) ? "*" : $"*.{ext.TrimStart('.')}";
         bool perma = permaDelete.Checked;
 
         if (Validate_Path())
         {
-            string[] files = Directory.GetFiles(folder, "*." + ext);
+            string[] files = Directory.GetFiles(folder, searchPattern);
             foreach (var file in files)
             {
                 if (perma)
