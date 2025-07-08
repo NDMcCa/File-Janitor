@@ -11,6 +11,9 @@ public partial class Form1 : Form
     Button deleteButton;
     CheckBox permaDelete;
     ListBox fileList;
+    Label hitCount;
+    System.Windows.Forms.Timer refreshTimer;
+
     public Form1()
     {
         InitializeComponent();
@@ -23,10 +26,16 @@ public partial class Form1 : Form
         deleteButton = new Button { Text = "Delete Files", Left = 10, Top = 90 };
         permaDelete = new CheckBox { Left = 100, Top = 90, Width = 200, Checked = false, Text = "Delete Permanently" };
         fileList = new ListBox { Left = 420, Top = 10, Width = 300, Height = 150 };
+        refreshTimer = new System.Windows.Forms.Timer { Interval = 500 };
+        hitCount = new Label { Left = 417, Top = 152, AutoSize = true, Text = "No files found" };
+
 
         browseButton.Click += Browse_Click;
         deleteButton.Click += Delete_Click;
         refreshButton.Click += Refresh_Click;
+        extensionTextBox.TextChanged += Refresh_Timer;
+        refreshTimer.Tick += RefreshTimer_Tick;
+        refreshTimer.Enabled = false;
 
         this.Controls.Add(folderTextBox);
         this.Controls.Add(browseButton);
@@ -35,6 +44,7 @@ public partial class Form1 : Form
         this.Controls.Add(deleteButton);
         this.Controls.Add(permaDelete);
         this.Controls.Add(fileList);
+        this.Controls.Add(hitCount);
 
     }
 
@@ -80,21 +90,54 @@ public partial class Form1 : Form
                 fileList.Items.Add(file.Remove(0, folder.Length + 1));
             }
         }
-    }
 
+        switch (fileList.Items.Count)
+        {
+            case 0:
+                hitCount.Text = "No files found";
+                break;
+
+            case 1:
+                hitCount.Text = "1 file found";
+                break;
+
+            default:
+                hitCount.Text = $"{fileList.Items.Count} files found";
+                break;
+        }
+    }
+    
     /// <summary>
-    /// Refreshes the file list by re-querying the specified folder if the extension is changed. Should eventually be replaced with an automated solution.
+    /// Initiates the auto refresh timer when a change in the file extension text box is detected
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void Refresh_Click(object? sender, EventArgs e)
+    private void Refresh_Timer(object? sender, EventArgs e)
     {
+        refreshTimer.Stop();
+        refreshTimer.Start();
+    }
+
+    /// <summary>
+    /// Initiate the auto refresh once the timer hits its intervan (Tick)
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void RefreshTimer_Tick(object? sender, EventArgs e)
+    {
+        refreshTimer.Stop();
         if (Validate_Path())
         {
             Query_Files();
         }
     }
 
+    /// <summary>
+    /// Browse the file system through a Windows Explorer GUI popup to select the desired folder.
+    /// Automatically will fill the folder path text box once a folder is selected.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void Browse_Click(object? sender, EventArgs e)
     {
         using (FolderBrowserDialog dialog = new FolderBrowserDialog())
@@ -136,6 +179,19 @@ public partial class Form1 : Form
             Query_Files();
 
             MessageBox.Show($"Deleted {files.Length} file(s) of type .{ext}");
+        }
+    }
+
+    /// <summary>
+    /// Refreshes the file list by re-querying the specified folder if the extension is changed. Should eventually be replaced with an automated solution.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void Refresh_Click(object? sender, EventArgs e)
+    {
+        if (Validate_Path())
+        {
+            Query_Files();
         }
     }
 }
