@@ -1,0 +1,44 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on tag push like v1.0.0
+
+jobs:
+  build:
+    name: Build and Publish Artifacts
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'  # or whatever version you're targeting
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Publish Framework-Dependent
+        run: dotnet publish -c Release -o lightweight /p:PublishSingleFile=true
+
+      - name: Publish Self-Contained
+        run: dotnet publish -c Release -r win-x64 --self-contained true -o self-contained /p:PublishSingleFile=true
+
+      - name: Zip lightweight build
+        run: Compress-Archive -Path lightweight\* -DestinationPath FileDeleterApp_lightweight.zip
+
+      - name: Zip self-contained build
+        run: Compress-Archive -Path self-contained\* -DestinationPath FileDeleterApp_selfcontained.zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            FileDeleterApp_lightweight.zip
+            FileDeleterApp_selfcontained.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
