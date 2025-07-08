@@ -4,14 +4,14 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build and Publish Artifacts
     runs-on: windows-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Setup .NET
@@ -19,29 +19,36 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore dependencies
+      - name: Restore Dependencies
         run: dotnet restore
         working-directory: FileJanitor
 
-      - name: Publish Framework-Dependent
-        run: dotnet publish -c Release -o lightweight /p:PublishSingleFile=true
+      - name: Publish Framework Dependent Build
+        run: dotnet publish -c Release -o ../builds/lightweight /p:PublishSingleFile=true
         working-directory: FileJanitor
 
-      - name: Publish Self-Contained
-        run: dotnet publish -c Release -r win-x64 --self-contained true -o self-contained /p:PublishSingleFile=true
+      - name: Publish Self-Contained Build
+        run: dotnet publish -c Release -r win-x64 --self-contained true -o ../builds/self-contained /p:PublishSingleFile=true
         working-directory: FileJanitor
 
-      - name: Zip lightweight build
-        run: Compress-Archive -Path lightweight\* -DestinationPath FileDeleterApp_lightweight.zip
+      - name: List contents (for debugging)
+        run: |
+          echo "Lightweight build contents:"
+          dir builds\lightweight
+          echo "Self-contained build contents:"
+          dir builds\self-contained
 
-      - name: Zip self-contained build
-        run: Compress-Archive -Path self-contained\* -DestinationPath FileDeleterApp_selfcontained.zip
+      - name: Zip Framework Dependent Build
+        run: Compress-Archive -Path builds\lightweight\* -DestinationPath FileJanitor_lightweight.zip
 
-      - name: Create GitHub Release
+      - name: Zip Self-Contained Build
+        run: Compress-Archive -Path builds\self-contained\* -DestinationPath FileJanitor_selfcontained.zip
+
+      - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            FileDeleterApp_lightweight.zip
-            FileDeleterApp_selfcontained.zip
+            FileJanitor_lightweight.zip
+            FileJanitor_selfcontained.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
