@@ -34,7 +34,7 @@ jobs:
         working-directory: FileJanitor
 
       - name: Publish Framework Dependent Build
-        run: dotnet publish -c Release -o builds\lightweight /p:PublishSingleFile=true
+        run: dotnet publish -c Release -o builds\lightweight /p:PublishSingleFile=true /p:SelfContained=false
         working-directory: FileJanitor
 
       - name: Publish Self-Contained Build
