@@ -26,8 +26,18 @@ jobs:
         run: dotnet restore
         working-directory: FileJanitor
 
+      - name: Clean Framework Dependent Output Folder
+        run: Remove-Item -Recurse -Force builds\lightweight -ErrorAction SilentlyContinue
+        shell: powershell
+        working-directory: FileJanitor
+
       - name: Publish Framework Dependent Build
         run: dotnet publish -c Release -o builds\lightweight /p:PublishSingleFile=true
+        working-directory: FileJanitor
+
+      - name: Clean Self-Contained Output Folder
+        run: Remove-Item -Recurse -Force builds\self-contained -ErrorAction SilentlyContinue
+        shell: powershell
         working-directory: FileJanitor
 
       - name: Publish Self-Contained Build
@@ -36,26 +46,29 @@ jobs:
 
       - name: List Lightweight build contents
         run: dir builds\lightweight
+        shell: powershell
         working-directory: FileJanitor
 
       - name: List Self-contained build contents
         run: dir builds\self-contained
+        shell: powershell
         working-directory: FileJanitor
 
       - name: Zip Framework Dependent Build
-        run: Compress-Archive -Path builds\lightweight\FileDeleterApp.exe -DestinationPath ../FileJanitor_lightweight.zip
+        run: Compress-Archive -Path builds\lightweight\FileDeleterApp.exe -DestinationPath builds\FileJanitor_lightweight.zip
+        shell: powershell
         working-directory: FileJanitor
 
       - name: Zip Self-Contained Build
-        run: Compress-Archive -Path builds\self-contained\FileDeleterApp.exe -DestinationPath ../FileJanitor_selfcontained.zip
+        run: Compress-Archive -Path builds\self-contained\FileDeleterApp.exe -DestinationPath builds\FileJanitor_selfcontained.zip
+        shell: powershell
         working-directory: FileJanitor
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            FileJanitor_lightweight.zip
-            FileJanitor_selfcontained.zip
+            builds\FileJanitor_lightweight.zip
+            builds\FileJanitor_selfcontained.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
