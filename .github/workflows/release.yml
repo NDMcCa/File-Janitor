@@ -50,10 +50,10 @@ jobs:
           dir ../builds/self-contained
 
       - name: Zip Framework Dependent Build
-        run: Compress-Archive -Path ../builds/lightweight\FileDeleterApp.exe -DestinationPath FileJanitor_lightweight.zip
+        run: Compress-Archive -Path ../builds/lightweight/FileDeleterApp.exe -DestinationPath FileJanitor_lightweight.zip
 
       - name: Zip Self-Contained Build
-        run: Compress-Archive -Path ../builds/self-contained\FileDeleterApp.exe -DestinationPath FileJanitor_selfcontained.zip
+        run: Compress-Archive -Path ../builds/self-contained/FileDeleterApp.exe -DestinationPath FileJanitor_selfcontained.zip
       
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
