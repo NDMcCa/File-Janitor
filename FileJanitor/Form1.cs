@@ -73,7 +73,7 @@ public partial class Form1 : Form
 
         fileList.Items.Clear();
 
-        if (Validate_Path());
+        if (Validate_Path())
         {
             foreach (var file in files)
             {
