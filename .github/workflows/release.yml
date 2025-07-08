@@ -26,9 +26,17 @@ jobs:
         run: dotnet restore
         working-directory: FileJanitor
 
+      - name: Clean Framework Dependent Output Folder
+        run: Remove-Item -Recurse -Force ../builds/lightweight
+        shell: powershell
+
       - name: Publish Framework Dependent Build
         run: dotnet publish -c Release -o ../builds/lightweight /p:PublishSingleFile=true
         working-directory: FileJanitor
+
+      - name: Clean Self-Contained Output Folder
+        run: Remove-Item -Recurse -Force ../builds/self-contained
+        shell: powershell
 
       - name: Publish Self-Contained Build
         run: dotnet publish -c Release -r win-x64 --self-contained true -o ../builds/self-contained /p:PublishSingleFile=true
@@ -37,16 +45,16 @@ jobs:
       - name: List contents (for debugging)
         run: |
           echo "Lightweight build contents:"
-          dir builds\lightweight
+          dir ../builds/lightweight
           echo "Self-contained build contents:"
-          dir builds\self-contained
+          dir ../builds/self-contained
 
       - name: Zip Framework Dependent Build
-        run: Compress-Archive -Path builds\lightweight\* -DestinationPath FileJanitor_lightweight.zip
+        run: Compress-Archive -Path ../builds/lightweight\FileDeleterApp.exe -DestinationPath FileJanitor_lightweight.zip
 
       - name: Zip Self-Contained Build
-        run: Compress-Archive -Path builds\self-contained\* -DestinationPath FileJanitor_selfcontained.zip
-
+        run: Compress-Archive -Path ../builds/self-contained\FileDeleterApp.exe -DestinationPath FileJanitor_selfcontained.zip
+      
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
