@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*'  # Triggers on tag push like v1.0.0
+      - 'v*'
 
 jobs:
   build:
@@ -17,16 +17,19 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'  # or whatever version you're targeting
+          dotnet-version: '8.0.x'
 
       - name: Restore dependencies
         run: dotnet restore
+        working-directory: FileJanitor
 
       - name: Publish Framework-Dependent
         run: dotnet publish -c Release -o lightweight /p:PublishSingleFile=true
+        working-directory: FileJanitor
 
       - name: Publish Self-Contained
         run: dotnet publish -c Release -r win-x64 --self-contained true -o self-contained /p:PublishSingleFile=true
+        working-directory: FileJanitor
 
       - name: Zip lightweight build
         run: Compress-Archive -Path lightweight\* -DestinationPath FileDeleterApp_lightweight.zip
