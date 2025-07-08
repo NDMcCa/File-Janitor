@@ -14,7 +14,8 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -25,26 +26,37 @@ jobs:
         run: dotnet restore
         working-directory: FileJanitor
 
+      - name: Clean Framework Dependent Output Folder
+        run: Remove-Item -Recurse -Force ${{ github.workspace }}\builds\lightweight -ErrorAction SilentlyContinue
+        shell: powershell
+
       - name: Publish Framework Dependent Build
         run: dotnet publish -c Release -o ${{ github.workspace }}\builds\lightweight /p:PublishSingleFile=true
         working-directory: FileJanitor
+
+      - name: Clean Self-Contained Output Folder
+        run: Remove-Item -Recurse -Force ${{ github.workspace }}\builds\self-contained -ErrorAction SilentlyContinue
+        shell: powershell
 
       - name: Publish Self-Contained Build
         run: dotnet publish -c Release -r win-x64 --self-contained true -o ${{ github.workspace }}\builds\self-contained /p:PublishSingleFile=true
         working-directory: FileJanitor
 
-      - name: List contents (for debugging)
-        run: |
-          echo "Lightweight build contents:"
-          dir ${{ github.workspace }}\builds\lightweight
-          echo "Self-contained build contents:"
-          dir ${{ github.workspace }}\builds\self-contained
+      - name: List Lightweight build contents
+        run: dir ${{ github.workspace }}\builds\lightweight
+        shell: powershell
+
+      - name: List Self-contained build contents
+        run: dir ${{ github.workspace }}\builds\self-contained
+        shell: powershell
 
       - name: Zip Framework Dependent Build
-        run: Compress-Archive -Path ${{ github.workspace }}\builds\lightweight\FileDeleterApp.exe -DestinationPath FileJanitor_lightweight.zip
+        run: Compress-Archive -Path ${{ github.workspace }}\builds\lightweight\FileDeleterApp.exe -DestinationPath ${{ github.workspace }}\FileJanitor_lightweight.zip
+        shell: powershell
 
       - name: Zip Self-Contained Build
-        run: Compress-Archive -Path ${{ github.workspace }}\builds\self-contained\FileDeleterApp.exe -DestinationPath FileJanitor_selfcontained.zip
+        run: Compress-Archive -Path ${{ github.workspace }}\builds\self-contained\FileDeleterApp.exe -DestinationPath ${{ github.workspace }}\FileJanitor_selfcontained.zip
+        shell: powershell
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
@@ -54,3 +66,4 @@ jobs:
             FileJanitor_selfcontained.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
