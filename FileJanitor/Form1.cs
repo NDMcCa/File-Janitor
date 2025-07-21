@@ -10,6 +10,7 @@ public partial class Form1 : Form
     Button refreshButton;
     Button deleteButton;
     CheckBox permaDelete;
+    CheckBox recursive;
     ListBox fileList;
     Label hitCount;
     System.Windows.Forms.Timer refreshTimer;
@@ -25,6 +26,7 @@ public partial class Form1 : Form
         extensionTextBox = new TextBox { Left = 10, Top = 50, Width = 100, PlaceholderText = "File Extension" };
         deleteButton = new Button { Text = "Delete Files", Left = 10, Top = 90 };
         permaDelete = new CheckBox { Left = 100, Top = 90, Width = 200, Checked = false, Text = "Delete Permanently" };
+        recursive = new CheckBox { Left = 240, Top = 90, Width = 150, Checked = false, Text = "Recursive" };
         fileList = new ListBox { Left = 420, Top = 10, Width = 300, Height = 150 };
         refreshTimer = new System.Windows.Forms.Timer { Interval = 500 };
         hitCount = new Label { Left = 417, Top = 152, AutoSize = true, Text = "No files found" };
@@ -33,6 +35,7 @@ public partial class Form1 : Form
         browseButton.Click += Browse_Click;
         deleteButton.Click += Delete_Click;
         refreshButton.Click += Refresh_Click;
+        recursive.CheckStateChanged += Refresh_Timer;
         extensionTextBox.TextChanged += Refresh_Timer;
         refreshTimer.Tick += RefreshTimer_Tick;
         refreshTimer.Enabled = false;
@@ -42,6 +45,7 @@ public partial class Form1 : Form
         this.Controls.Add(refreshButton);
         this.Controls.Add(extensionTextBox);
         this.Controls.Add(deleteButton);
+        this.Controls.Add(recursive);
         this.Controls.Add(permaDelete);
         this.Controls.Add(fileList);
         this.Controls.Add(hitCount);
@@ -71,20 +75,45 @@ public partial class Form1 : Form
     }
 
     /// <summary>
+    /// Queries a specified and recursively queries all available subfolders for all files of a specified extension
+    /// </summary>
+    /// <param name="folder"></param>
+    /// <param name="searchPattern"></param>
+    /// <returns></returns>
+    private List<string> Recursive_Query_Files(string folder, string searchPattern)
+    {
+        List<string> result = new List<string>();
+        string[] subFolders = Directory.GetDirectories(folder, searchPattern);
+        result.AddRange(Directory.GetFiles(folder, searchPattern));
+        foreach (var subFolder in subFolders)
+        {
+            result.AddRange(Recursive_Query_Files(subFolder, searchPattern));
+        }
+        return result;
+    }
+
+    /// <summary>
     /// Queries a specified folder for all files of a specified extension
     /// </summary>
     private void Query_Files()
     {
-
         string folder = folderTextBox.Text;
         string ext = extensionTextBox.Text.TrimStart('.');
         string searchPattern = string.IsNullOrWhiteSpace(ext) ? "*" : $"*.{ext.TrimStart('.')}";
-        string[] files = Directory.GetFiles(folder, searchPattern);
 
         fileList.Items.Clear();
 
         if (Validate_Path())
         {
+            string[] files;
+            if (recursive.Checked)
+            {
+                files = Recursive_Query_Files(folder, searchPattern).ToArray();
+            }
+            else
+            {
+                files = Directory.GetFiles(folder, searchPattern);
+            }
             foreach (var file in files)
             {
                 fileList.Items.Add(file.Remove(0, folder.Length + 1));

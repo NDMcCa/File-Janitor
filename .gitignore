@@ -522,3 +522,7 @@ FileJanitor/publish/self-contained/PenImc_cor3.dll
 FileJanitor/publish/self-contained/PresentationNative_cor3.dll
 FileJanitor/publish/self-contained/vcruntime140_cor3.dll
 FileJanitor/publish/self-contained/wpfgfx_cor3.dll
+FileJanitor/builds/lightweight/FileJanitor.exe
+FileJanitor/builds/lightweight/FileJanitor.pdb
+FileJanitor/obj/Release/net8.0-windows/win-x64/apphost.exe
+FileJanitor/obj/Release/net8.0-windows/win-x64/PublishOutputs.5d1e5173f3.txt
