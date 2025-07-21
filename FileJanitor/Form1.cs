@@ -1,3 +1,5 @@
+using System.Configuration;
+using System.Windows.Forms.VisualStyles;
 using Microsoft.VisualBasic.FileIO;
 
 namespace FileJanitor;
@@ -196,8 +198,11 @@ public partial class Form1 : Form
             string[] files = Directory.GetFiles(folder, searchPattern);
 
             string deleteType = perma ? "permanently delete" : "recycle";
+
+            string confMessage = fileList.Items.Count == 1 ? $"Are you sure you want to {deleteType} 1 file?" : $"Are you sure you want to {deleteType} {fileList.Items.Count} files?";
+            
             var confirmation = MessageBox.Show(
-                    $"Are you sure you want to {deleteType} {fileList.Items.Count} files?",
+                    confMessage,
                     "Please Confirm",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question
@@ -205,21 +210,53 @@ public partial class Form1 : Form
 
             if (confirmation == DialogResult.Yes)
             {
-                foreach (var file in files)
+                int deletedCount = 0;
+                int errorCount = 0;
+
+                foreach (var file in fileList.Items)
                 {
-                    if (perma)
+                    if (file is string relativePath && !string.IsNullOrEmpty(relativePath))
                     {
-                        FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs, RecycleOption.DeletePermanently);
+                        string fullPath = Path.Combine(folder, relativePath);
+                        try
+                        {
+                            if (perma)
+                            {
+                                FileSystem.DeleteFile(fullPath, UIOption.OnlyErrorDialogs, RecycleOption.DeletePermanently);
+                            }
+                            else
+                            {
+                                FileSystem.DeleteFile(fullPath, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+                            }
+                            deletedCount++;
+                        }
+                        catch
+                        {
+                            errorCount++;
+                        }
                     }
                     else
                     {
-                        FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+                        errorCount++;
                     }
                 }
+
                 Query_Files();
 
+                string resultMessage = deletedCount == 1 ? "Deleted 1 file" : $"Deleted {deletedCount} files";
+
+                if (ext.Length > 0)
+                {
+                    resultMessage += $" of type .{ext}";
+                }
+
+                if (errorCount > 0)
+                {
+                    resultMessage += $"\n{errorCount} file(s) could not be deleted (missing or in-use)";
+                }
+
                 MessageBox.Show(
-                    $"Deleted {files.Length} file(s) of type .{ext}",
+                    resultMessage,
                     "Complete",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information
