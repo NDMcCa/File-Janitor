@@ -194,20 +194,37 @@ public partial class Form1 : Form
         if (Validate_Path())
         {
             string[] files = Directory.GetFiles(folder, searchPattern);
-            foreach (var file in files)
-            {
-                if (perma)
-                {
-                    FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs, RecycleOption.DeletePermanently);
-                }
-                else
-                {
-                    FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
-                }
-            }
-            Query_Files();
 
-            MessageBox.Show($"Deleted {files.Length} file(s) of type .{ext}");
+            string deleteType = perma ? "permanently delete" : "recycle";
+            var confirmation = MessageBox.Show(
+                    $"Are you sure you want to {deleteType} {fileList.Items.Count} files?",
+                    "Please Confirm",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question
+                );
+
+            if (confirmation == DialogResult.Yes)
+            {
+                foreach (var file in files)
+                {
+                    if (perma)
+                    {
+                        FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs, RecycleOption.DeletePermanently);
+                    }
+                    else
+                    {
+                        FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+                    }
+                }
+                Query_Files();
+
+                MessageBox.Show(
+                    $"Deleted {files.Length} file(s) of type .{ext}",
+                    "Complete",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
+            }
         }
     }
 
